@@ -1,0 +1,29 @@
+# Use the latest Ubuntu LTS image
+FROM ubuntu:22.04
+
+# Update package lists
+RUN apt-get update && apt-get upgrade -y
+
+# Install dependencies (adjust based on your Odoo version)
+RUN apt-get install -y python3 python3-pip git libpq-dev
+
+# Create a directory for Odoo
+WORKDIR /app
+
+# Copy the Odoo source code from the app directory
+COPY . .
+
+# Install Odoo dependencies
+RUN sed -n -e '/^Depends:/,/^Pre/ s/ python3-\(.*\),/python3-\1/p' debian/control | xargs apt-get install -y
+
+# Expose the Odoo port (default: 8069)
+EXPOSE 8069
+
+# Set the working directory for the Odoo process
+WORKDIR /app  # Adjust if your Odoo code is in a subdirectory
+
+# Command to run Odoo
+CMD ["python3", "odoo-bin", "-r", "dbuser", "-w", "dbpassword", "--addons-path=/mnt/extra-addons", "-d", "mydb"]
+
+# This line is optional, but recommended for production
+# USER odoo  # Create a dedicated user for Odoo process
